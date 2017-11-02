@@ -25,29 +25,6 @@ type Props = {
   closeConditionalPanel: () => void
 };
 
-function createEditor() {
-  return new SourceEditor({
-    mode: "javascript",
-    foldGutter: false,
-    enableCodeFolding: false,
-    readOnly: false,
-    lineNumbers: false,
-    theme: "mozilla",
-    styleActiveLine: false,
-    lineWrapping: false,
-    matchBrackets: false,
-    showAnnotationRuler: false,
-    gutters: [],
-    value: " ",
-    extraKeys: {
-      // Override code mirror keymap to avoid conflicts with split console.
-      Esc: false,
-      "Cmd-F": false,
-      "Cmd-G": false
-    }
-  });
-}
-
 export class ConditionalPanel extends PureComponent<Props> {
   cbPanel: null | Object;
   input: ?HTMLInputElement;
@@ -57,15 +34,43 @@ export class ConditionalPanel extends PureComponent<Props> {
     this.cbPanel = null;
   }
 
-  keepFocusOnInput() {
-    if (this.input) {
-      this.input.focus();
+  createEditor(condition) {
+    return new SourceEditor({
+      mode: "javascript",
+      foldGutter: false,
+      enableCodeFolding: false,
+      readOnly: false,
+      lineNumbers: false,
+      theme: "mozilla",
+      styleActiveLine: false,
+      lineWrapping: false,
+      matchBrackets: false,
+      showAnnotationRuler: false,
+      gutters: [],
+      value: condition,
+      extraKeys: {
+        // Override code mirror keymap to avoid conflicts with split console.
+        Esc: () => {
+          this.props.closeConditionalPanel();
+        },
+        Enter: () => {
+          this.saveAndClose();
+        },
+        "Cmd-F": false,
+        "Cmd-G": false
+      }
+    });
+  }
+
+  keepFocusOnTextArea() {
+    if (this.textArea) {
+      this.textArea.focus();
     }
   }
 
   saveAndClose = () => {
-    if (this.input) {
-      this.setBreakpoint(this.input.value);
+    if (this.textArea) {
+      this.setBreakpoint(this.textArea.value);
     }
 
     this.props.closeConditionalPanel();
@@ -110,11 +115,12 @@ export class ConditionalPanel extends PureComponent<Props> {
       this.renderConditionalPanel(props),
       {
         coverGutter: true,
-        noHScroll: true
+        noHScroll: false
       }
     );
-    editor.editor.refresh();
-    this.cbPanel.node.querySelector(".panel-mount textarea").focus();
+    this.textArea = this.cbPanel.node.querySelector(".panel-mount textarea");
+    this.textArea.focus();
+    this.ebInput.editor.refresh();
   }
 
   renderConditionalPanel(props: Props) {
@@ -124,7 +130,7 @@ export class ConditionalPanel extends PureComponent<Props> {
     ReactDOM.render(
       <div
         className="conditional-breakpoint-panel"
-        onClick={() => this.keepFocusOnInput()}
+        onClick={() => this.keepFocusOnTextArea()}
         onBlur={this.props.closeConditionalPanel}
       >
         <div className="prompt">»</div>
@@ -138,7 +144,9 @@ export class ConditionalPanel extends PureComponent<Props> {
       panel
     );
 
-    const editor = createEditor();
+    const editor = this.createEditor(condition);
+    this.ebInput = editor;
+
     editor._initShortcuts = () => {};
     editor.appendToLocalElement(panel.querySelector(".panel-mount"));
 
