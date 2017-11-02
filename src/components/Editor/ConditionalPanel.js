@@ -7,6 +7,7 @@ import CloseButton from "../shared/Button/Close";
 import "./ConditionalPanel.css";
 import { toEditorLine } from "../../utils/editor";
 import actions from "../../actions";
+import { SourceEditor } from "devtools-source-editor";
 
 import {
   getSelectedLocation,
@@ -23,6 +24,29 @@ type Props = {
   openConditionalPanel: () => void,
   closeConditionalPanel: () => void
 };
+
+function createEditor() {
+  return new SourceEditor({
+    mode: "javascript",
+    foldGutter: false,
+    enableCodeFolding: false,
+    readOnly: false,
+    lineNumbers: false,
+    theme: "mozilla",
+    styleActiveLine: false,
+    lineWrapping: false,
+    matchBrackets: false,
+    showAnnotationRuler: false,
+    gutters: [],
+    value: " ",
+    extraKeys: {
+      // Override code mirror keymap to avoid conflicts with split console.
+      Esc: false,
+      "Cmd-F": false,
+      "Cmd-G": false
+    }
+  });
+}
 
 export class ConditionalPanel extends PureComponent<Props> {
   cbPanel: null | Object;
@@ -86,12 +110,11 @@ export class ConditionalPanel extends PureComponent<Props> {
       this.renderConditionalPanel(props),
       {
         coverGutter: true,
-        noHScroll: false
+        noHScroll: true
       }
     );
-    if (this.input) {
-      this.input.focus();
-    }
+    editor.editor.refresh();
+    this.cbPanel.node.querySelector(".panel-mount textarea").focus();
   }
 
   renderConditionalPanel(props: Props) {
@@ -105,12 +128,7 @@ export class ConditionalPanel extends PureComponent<Props> {
         onBlur={this.props.closeConditionalPanel}
       >
         <div className="prompt">»</div>
-        <input
-          defaultValue={condition}
-          placeholder={L10N.getStr("editor.conditionalPanel.placeholder")}
-          onKeyDown={this.onKey}
-          ref={input => (this.input = input)}
-        />
+        <div className="panel-mount" />
         <CloseButton
           handleClick={this.props.closeConditionalPanel}
           buttonClass="big"
@@ -119,6 +137,11 @@ export class ConditionalPanel extends PureComponent<Props> {
       </div>,
       panel
     );
+
+    const editor = createEditor();
+    editor._initShortcuts = () => {};
+    editor.appendToLocalElement(panel.querySelector(".panel-mount"));
+
     return panel;
   }
 
