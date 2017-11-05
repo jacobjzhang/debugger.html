@@ -63,14 +63,15 @@ export class ConditionalPanel extends PureComponent<Props> {
   }
 
   keepFocusOnTextArea() {
-    if (this.textArea) {
+    if (this.cbInput) {
       this.textArea.focus();
     }
   }
 
   saveAndClose = () => {
-    if (this.textArea) {
-      this.setBreakpoint(this.textArea.value);
+    if (this.ebInput) {
+      this.setBreakpoint(this.ebInput.editor.getValue());
+      delete this.ebInput;
     }
 
     this.props.closeConditionalPanel();
@@ -118,8 +119,7 @@ export class ConditionalPanel extends PureComponent<Props> {
         noHScroll: false
       }
     );
-    this.textArea = this.cbPanel.node.querySelector(".panel-mount textarea");
-    this.textArea.focus();
+    this.cbPanel.node.querySelector(".panel-mount textarea").focus();
     this.ebInput.editor.refresh();
   }
 
