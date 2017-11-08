@@ -69,8 +69,8 @@ export class ConditionalPanel extends PureComponent<Props> {
   }
 
   saveAndClose = () => {
-    if (this.ebInput) {
-      this.setBreakpoint(this.ebInput.editor.getValue());
+    if (this.cbPanel && this.cbInput) {
+      this.setBreakpoint(this.cbInput.editor.getValue());
     }
 
     this.props.closeConditionalPanel();
@@ -96,6 +96,10 @@ export class ConditionalPanel extends PureComponent<Props> {
       this.cbPanel.clear();
       this.cbPanel = null;
     }
+
+    if (this.cbInput) {
+      this.cbInput = null;
+    }
   }
 
   componentWillUpdate(nextProps: Props) {
@@ -110,16 +114,14 @@ export class ConditionalPanel extends PureComponent<Props> {
     const sourceId = selectedLocation ? selectedLocation.sourceId : "";
 
     const editorLine = toEditorLine(sourceId, line);
-    this.cbPanel = editor.codeMirror.addLineWidget(
-      editorLine,
-      this.renderConditionalPanel(props),
-      {
-        coverGutter: true,
-        noHScroll: false
-      }
-    );
+    const panel = this.renderConditionalPanel(props);
+    this.cbPanel = editor.codeMirror.addLineWidget(editorLine, panel, {
+      coverGutter: true
+    });
+
+    this.cbInput.appendToLocalElement(panel.querySelector(".panel-mount"));
     this.cbPanel.node.querySelector(".panel-mount textarea").focus();
-    this.ebInput.editor.refresh();
+    this.cbInput.editor.refresh();
   }
 
   renderConditionalPanel(props: Props) {
@@ -144,10 +146,8 @@ export class ConditionalPanel extends PureComponent<Props> {
     );
 
     const editor = this.createEditor(condition);
-    this.ebInput = editor;
-
     editor._initShortcuts = () => {};
-    editor.appendToLocalElement(panel.querySelector(".panel-mount"));
+    this.cbInput = editor;
 
     return panel;
   }
