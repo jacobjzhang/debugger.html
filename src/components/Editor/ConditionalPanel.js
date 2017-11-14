@@ -51,7 +51,7 @@ export class ConditionalPanel extends PureComponent<Props> {
       matchBrackets: false,
       showAnnotationRuler: false,
       gutters: [],
-      value: condition,
+      value: condition || "",
       extraKeys: {
         // Override code mirror keymap to avoid conflicts with split console.
         Esc: () => {
@@ -67,14 +67,15 @@ export class ConditionalPanel extends PureComponent<Props> {
   }
 
   keepFocusOnTextArea() {
-    if (this.cbInput) {
-      this.textArea.focus();
+    if (this.cbInput.editor) {
+      this.cbPanel.node.querySelector(".panel-mount textarea").focus();
     }
   }
 
   saveAndClose = () => {
-    if (this.ebInput) {
-      this.setBreakpoint(this.ebInput.editor.getValue());
+    if (this.cbInput) {
+      debugger
+      this.setBreakpoint(this.cbInput.editor.getValue());
     }
 
     this.props.closeConditionalPanel();
@@ -100,10 +101,6 @@ export class ConditionalPanel extends PureComponent<Props> {
       this.cbPanel.clear();
       this.cbPanel = null;
     }
-
-    if (this.cbInput) {
-      this.cbInput = null;
-    }
   }
 
   componentWillUpdate(nextProps: Props) {
@@ -118,16 +115,15 @@ export class ConditionalPanel extends PureComponent<Props> {
     const sourceId = selectedLocation ? selectedLocation.sourceId : "";
 
     const editorLine = toEditorLine(sourceId, line);
-    this.cbPanel = editor.codeMirror.addLineWidget(
-      editorLine,
-      this.renderConditionalPanel(props),
-      {
-        coverGutter: true,
-        noHScroll: false
-      }
-    );
+    const panel = this.renderConditionalPanel(props);
+    this.cbPanel = editor.codeMirror.addLineWidget(editorLine, panel, {
+      coverGutter: true,
+      noHScroll: false
+    });
+
+    this.cbInput.appendToLocalElement(panel.querySelector(".panel-mount"));
     this.cbPanel.node.querySelector(".panel-mount textarea").focus();
-    this.ebInput.editor.refresh();
+    this.cbInput.editor.refresh();
   }
 
   renderConditionalPanel(props: Props) {
