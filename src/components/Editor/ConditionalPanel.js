@@ -75,7 +75,6 @@ export class ConditionalPanel extends PureComponent<Props> {
   saveAndClose = () => {
     if (this.ebInput) {
       this.setBreakpoint(this.ebInput.editor.getValue());
-      delete this.ebInput;
     }
 
     this.props.closeConditionalPanel();
@@ -100,6 +99,10 @@ export class ConditionalPanel extends PureComponent<Props> {
     if (this.cbPanel) {
       this.cbPanel.clear();
       this.cbPanel = null;
+    }
+
+    if (this.cbInput) {
+      this.cbInput = null;
     }
   }
 
@@ -149,10 +152,8 @@ export class ConditionalPanel extends PureComponent<Props> {
     );
 
     const editor = this.createEditor(condition);
-    this.ebInput = editor;
-
     editor._initShortcuts = () => {};
-    editor.appendToLocalElement(panel.querySelector(".panel-mount"));
+    this.cbInput = editor;
 
     return panel;
   }
